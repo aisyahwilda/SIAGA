@@ -3,18 +3,23 @@ import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'wilayah_screen.dart';
 import '../models/penilaian_result.dart';
+import '../services/earthquake_service.dart';
 import 'penilaian_screen.dart';
 import 'riwayat_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({
+    super.key,
+    this.earthquakeService = const EarthquakeService(),
+  });
+
+  final EarthquakeService earthquakeService;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // buat variable penanda tab mana yang sedang aktif, mulainya dari index 0
   int _selectedIndex = 0;
 
   final List<PenilaianResult> _penilaianHistory = [];
@@ -23,53 +28,44 @@ class _MainScreenState extends State<MainScreen> {
     setState(() => _penilaianHistory.insert(0, result));
   }
 
-  // fungsi yang dipanggil ketika tombol menu dipencet
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index; // ini tuh ngubah state index
+      _selectedIndex = index;
     });
   }
 
-  // Fungsi untuk merakit tombol menu (Custom Navbar Item)
   Widget _buildNavItem({
     required IconData icon,
     required String label,
     required int index,
   }) {
-    bool isActive =
-        _selectedIndex == index; // ngecek apakah menu ini sedang dipilih
+    final isActive = _selectedIndex == index;
 
-    return GestureDetector(
-      onTap: () =>
-          _onItemTapped(index), // memanggil fungsi ganti halaman saat diklik
+    return InkWell(
+      onTap: () => _onItemTapped(index),
+      borderRadius: BorderRadius.circular(30),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300), // animasi smooth
-        padding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 6,
-        ), // FIX: kurangi padding vertical
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          // kalo aktif, pake warna oren FB6C00. kalo gak aktif transparan
           color: isActive ? const Color(0xFFFB6C00) : Colors.transparent,
-          borderRadius: BorderRadius.circular(30), // bikin kapsul background
+          borderRadius: BorderRadius.circular(30),
         ),
         child: Column(
-          mainAxisSize:
-              MainAxisSize.min, // agar kolom gak tembus pandang ke atas
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              // jika aktif warna putih, kalo gak aktif warna abu-abu
               color: isActive ? Colors.white : Colors.grey.shade600,
-              size: 22, // FIX: kurangi ukuran icon dari 26 ke 22
+              size: 22,
             ),
-            const SizedBox(height: 2), // FIX: kurangi jarak dari 4 ke 2
+            Container(height: 2),
             Text(
               label,
               style: TextStyle(
                 color: isActive ? Colors.white : Colors.grey.shade600,
-                fontSize: 11, // FIX: kurangi dari 12 ke 11
+                fontSize: 11,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -85,6 +81,7 @@ class _MainScreenState extends State<MainScreen> {
       SiagaHomePage(
         onOpenWilayah: () => _onItemTapped(1),
         onOpenPenilaian: () => _onItemTapped(2),
+        earthquakeService: widget.earthquakeService,
       ),
       const WilayahScreen(),
       PenilaianScreen(onSave: _savePenilaian),
@@ -92,19 +89,14 @@ class _MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      // agar halaman bisa menyentuh ujung bawah layar
       extendBody: true,
-
-      // IndexedStack mempertahankan state setiap tab saat pengguna berpindah halaman.
       body: IndexedStack(index: _selectedIndex, children: pages),
-
-      // navbar melayang yang keren
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
         child: Container(
-          height: 72, // FIX: turunkan dari 80 ke 72 supaya lebih compact
+          height: 72,
           decoration: BoxDecoration(
-            color: Colors.white, // warna dasar navbar
+            color: Colors.white,
             borderRadius: BorderRadius.circular(40),
             boxShadow: [
               BoxShadow(

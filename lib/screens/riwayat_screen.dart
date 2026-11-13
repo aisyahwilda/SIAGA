@@ -27,7 +27,7 @@ class RiwayatScreen extends StatelessWidget {
                 colors: [Color(0xFFFFE0D2), Color(0xFFFAFAFA)],
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 CircleAvatar(
                   radius: 20,
@@ -38,7 +38,7 @@ class RiwayatScreen extends StatelessWidget {
                     size: 21,
                   ),
                 ),
-                SizedBox(width: 11),
+                Container(width: 11),
                 Expanded(
                   child: Text(
                     'Riwayat Penilaian',
@@ -65,7 +65,7 @@ class RiwayatScreen extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 12),
+                Container(height: 12),
                 if (penilaianHistory.isEmpty)
                   _buildEmptyState()
                 else
@@ -89,10 +89,10 @@ class RiwayatScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFF5E8DC)),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.event_note_rounded, color: Color(0xFFFB6C00)),
-          SizedBox(width: 10),
+          Container(width: 10),
           Expanded(
             child: Text(
               'Hasil penilaian yang sudah selesai akan tersimpan di sini.',
@@ -152,7 +152,7 @@ class RiwayatScreen extends StatelessWidget {
                     size: 21,
                   ),
                 ),
-                const SizedBox(width: 12),
+                Container(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +165,7 @@ class RiwayatScreen extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      Container(height: 5),
                       Text(
                         'Skor kesiapsiagaan: ${result.score} dari ${result.answers.length}',
                         style: const TextStyle(
@@ -176,7 +176,7 @@ class RiwayatScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
+                Container(width: 8),
                 Container(
                   constraints: const BoxConstraints(maxWidth: 112),
                   padding: const EdgeInsets.symmetric(
@@ -197,7 +197,7 @@ class RiwayatScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
+                Container(width: 4),
                 const Icon(
                   Icons.chevron_right_rounded,
                   color: Color(0xFF77736F),
@@ -239,7 +239,7 @@ class RiwayatScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              Container(height: 20),
               const Text(
                 'Detail Penilaian',
                 style: TextStyle(
@@ -248,12 +248,12 @@ class RiwayatScreen extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 5),
+              Container(height: 5),
               Text(
                 result.formattedDate,
                 style: const TextStyle(color: Color(0xFF737980), fontSize: 13),
               ),
-              const SizedBox(height: 18),
+              Container(height: 18),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -267,7 +267,7 @@ class RiwayatScreen extends StatelessWidget {
                       'Hasil Penilaian Kesiapsiagaan',
                       style: TextStyle(color: Color(0xFF62666D), fontSize: 12),
                     ),
-                    const SizedBox(height: 6),
+                    Container(height: 6),
                     Text(
                       '${result.score} dari ${result.answers.length} · ${result.category}',
                       style: const TextStyle(
@@ -276,7 +276,7 @@ class RiwayatScreen extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    Container(height: 6),
                     Text(
                       result.description,
                       style: const TextStyle(
@@ -299,7 +299,7 @@ class RiwayatScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
+              Container(height: 18),
               const Text(
                 'Jawaban penilaian',
                 style: TextStyle(
@@ -308,7 +308,7 @@ class RiwayatScreen extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 8),
+              Container(height: 8),
               for (var index = 0; index < result.answers.length; index++)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
@@ -324,7 +324,7 @@ class RiwayatScreen extends StatelessWidget {
                             : const Color(0xFFE73F1E),
                         size: 18,
                       ),
-                      const SizedBox(width: 9),
+                      Container(width: 9),
                       Expanded(
                         child: Text(
                           PenilaianResult.questions[index],
@@ -335,7 +335,7 @@ class RiwayatScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      Container(width: 8),
                       Text(
                         result.answers[index] ? 'Ya' : 'Tidak',
                         style: TextStyle(
@@ -349,7 +349,7 @@ class RiwayatScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-              const SizedBox(height: 12),
+              Container(height: 12),
               const Text(
                 'Hal yang perlu ditingkatkan',
                 style: TextStyle(
@@ -358,7 +358,7 @@ class RiwayatScreen extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 8),
+              Container(height: 8),
               if (result.improvements.isEmpty)
                 const Text(
                   'Semua indikator sudah terpenuhi. Pertahankan kesiapsiagaanmu.',
@@ -381,7 +381,7 @@ class RiwayatScreen extends StatelessWidget {
                             color: Color(0xFFFB6C00),
                             size: 8,
                           ),
-                          const SizedBox(width: 10),
+                          Container(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -394,7 +394,7 @@ class RiwayatScreen extends StatelessWidget {
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
+                                Container(height: 4),
                                 Text(
                                   PenilaianResult.recommendations[index],
                                   style: const TextStyle(

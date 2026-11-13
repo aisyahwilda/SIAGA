@@ -1,17 +1,25 @@
-# siaga_gempa
+# SIAGA
 
-A new Flutter project.
+Aplikasi Flutter untuk melihat informasi gempa dan mengecek kesiapsiagaan.
 
-## Getting Started
+## Integrasi API BMKG
 
-This project is a starting point for a Flutter application.
+Beranda mengambil data gempa terbaru dari endpoint publik BMKG:
 
-A few resources to get you started if this is your first Flutter project:
+`https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json`
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Alur datanya:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. `EarthquakeService` mengirim HTTP GET dan memeriksa status serta format respons.
+2. `Earthquake.fromJson` mengubah data JSON menjadi model Dart.
+3. Kartu **Gempa Terkini** menampilkan magnitudo, waktu, lokasi, kedalaman, dan informasi potensi.
+4. Saat permintaan berlangsung, aplikasi menampilkan status memuat. Jika gagal, pengguna dapat mencoba lagi.
+
+Izin internet Android ditambahkan di `android/app/src/main/AndroidManifest.xml`.
+
+Jalankan aplikasi dengan `flutter run`. Untuk memeriksa kode dan tes:
+
+```shell
+flutter analyze
+flutter test
+```

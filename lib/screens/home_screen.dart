@@ -1,20 +1,39 @@
 import 'package:flutter/material.dart';
 
+import '../models/earthquake.dart';
+import '../services/earthquake_service.dart';
+
 class SiagaHomePage extends StatefulWidget {
   const SiagaHomePage({
     super.key,
     required this.onOpenWilayah,
     required this.onOpenPenilaian,
+    this.earthquakeService = const EarthquakeService(),
   });
 
   final VoidCallback onOpenWilayah;
   final VoidCallback onOpenPenilaian;
+  final EarthquakeService earthquakeService;
 
   @override
   State<SiagaHomePage> createState() => _SiagaHomePageState();
 }
 
 class _SiagaHomePageState extends State<SiagaHomePage> {
+  late Future<Earthquake> _earthquakeFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _earthquakeFuture = widget.earthquakeService.fetchLatest();
+  }
+
+  void _retryEarthquakeRequest() {
+    setState(() {
+      _earthquakeFuture = widget.earthquakeService.fetchLatest();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final tinggi = MediaQuery.of(context).size.height;
@@ -32,15 +51,15 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: y * 0.15),
+                Container(height: y * 0.15),
                 _buildLocationSelector(y: y),
-                SizedBox(height: y * 0.25),
+                Container(height: y * 0.25),
                 _buildMainEarthquakeCard(),
-                SizedBox(height: y * 0.25),
+                Container(height: y * 0.25),
                 _buildFeltSection(),
-                const SizedBox(height: 18),
+                Container(height: 18),
                 _buildEvaluationBanner(),
-                SizedBox(height: y * 1.2),
+                Container(height: y * 1.2),
               ],
             ),
           ),
@@ -74,8 +93,8 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                 height: 48,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(width: 12),
-              const Expanded(
+              Container(width: 12),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -89,7 +108,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                         height: 1.1,
                       ),
                     ),
-                    SizedBox(height: 3),
+                    Container(height: 3),
                     Text(
                       'Sistem Informasi Gempa',
                       style: TextStyle(color: Color(0xFF514740), fontSize: 13),
@@ -99,8 +118,8 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
               ),
             ],
           ),
-          SizedBox(height: y * 0.35),
-          const Column(
+          Container(height: y * 0.35),
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -109,7 +128,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
               ),
-              SizedBox(height: 5),
+              Container(height: 6),
               Text(
                 'Semoga selalu dalam keadaan aman dan siap.',
                 style: TextStyle(
@@ -144,14 +163,14 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             children: [
               Icon(
                 Icons.location_on_rounded,
                 color: Color(0xFFE95727),
                 size: 29,
               ),
-              SizedBox(width: 16),
+              Container(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +179,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                       'Wilayah Pantauan',
                       style: TextStyle(fontSize: 12, color: Color(0xFF89837E)),
                     ),
-                    SizedBox(height: 3),
+                    Container(height: 3),
                     Text(
                       'Balikpapan',
                       style: TextStyle(
@@ -187,59 +206,94 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
         final artworkHeight = constraints.maxWidth < 310 ? 112.0 : 142.0;
         final magnitudeSize = constraints.maxWidth < 310 ? 42.0 : 50.0;
 
-        return Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFE73F1E), Color(0xFFFB6C00)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFE73F1E).withValues(alpha: 0.24),
-                blurRadius: 22,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [_LatestEarthquakeLabel(), _PreviewBadge()],
-              ),
-              const SizedBox(height: 17),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _MagnitudeText(fontSize: magnitudeSize),
-                        const SizedBox(height: 12),
-                        Container(
-                          width: double.infinity,
-                          height: 1,
-                          color: Colors.white.withValues(alpha: 0.28),
-                        ),
-                        const SizedBox(height: 11),
-                        const _LatestEarthquakeDetails(),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  _buildEarthquakeArtwork(
-                    width: artworkWidth,
-                    height: artworkHeight,
+        return FutureBuilder<Earthquake>(
+          future: _earthquakeFuture,
+          builder: (context, snapshot) {
+            final earthquake = snapshot.data;
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
+
+            return Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE73F1E), Color(0xFFFB6C00)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFE73F1E).withValues(alpha: 0.24),
+                    blurRadius: 22,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const _LatestEarthquakeLabel(),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (snapshot.hasError)
+                            IconButton(
+                              onPressed: _retryEarthquakeRequest,
+                              tooltip: 'Coba lagi',
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(
+                                Icons.refresh_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          const _SourceBadge(),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(height: 17),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _MagnitudeText(
+                              fontSize: magnitudeSize,
+                              magnitude: earthquake?.formattedMagnitude ?? '—',
+                            ),
+                            Container(height: 12),
+                            Container(
+                              width: double.infinity,
+                              height: 1,
+                              color: Colors.white.withValues(alpha: 0.28),
+                            ),
+                            Container(height: 11),
+                            _LatestEarthquakeDetails(
+                              earthquake: earthquake,
+                              isLoading: isLoading,
+                              hasError: snapshot.hasError,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(width: 12),
+                      _buildEarthquakeArtwork(
+                        width: artworkWidth,
+                        height: artworkHeight,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -251,7 +305,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
   }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
-      child: SizedBox(
+      child: Container(
         width: width,
         height: height,
         child: const DecoratedBox(
@@ -303,12 +357,12 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
             ),
           ],
         ),
-        const SizedBox(height: 5),
+        Container(height: 5),
         const Text(
           'Ringkasan kejadian yang dirasakan masyarakat.',
           style: TextStyle(fontSize: 12, color: Colors.black54),
         ),
-        const SizedBox(height: 12),
+        Container(height: 12),
         for (var index = 0; index < events.length; index++) ...[
           _buildFeltEarthquakeCard(
             magnitude: events[index].magnitude,
@@ -317,7 +371,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
             feltArea: events[index].feltArea,
             index: index,
           ),
-          if (index != events.length - 1) const SizedBox(height: 10),
+          if (index != events.length - 1) Container(height: 10),
         ],
       ],
     );
@@ -359,7 +413,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          const SizedBox(width: 12),
+          Container(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +426,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                     color: accent,
                   ),
                 ),
-                const SizedBox(height: 5),
+                Container(height: 5),
                 Text(
                   location,
                   style: const TextStyle(
@@ -381,12 +435,12 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                     color: Color(0xFF292421),
                   ),
                 ),
-                const SizedBox(height: 7),
+                Container(height: 6),
                 Text(
                   time,
                   style: const TextStyle(fontSize: 11, color: Colors.black54),
                 ),
-                const SizedBox(height: 6),
+                Container(height: 6),
                 Text(
                   'Dirasakan di $feltArea',
                   style: const TextStyle(
@@ -442,7 +496,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                   size: 31,
                 ),
               ),
-              const SizedBox(width: 14),
+              Container(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,7 +510,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                         height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    Container(height: 6),
                     const Text(
                       'Cek tingkat kesiapsiagaanmu sekarang!',
                       style: TextStyle(
@@ -468,7 +522,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              Container(width: 8),
               const Icon(
                 Icons.chevron_right_rounded,
                 color: Color(0xFF8F2A0D),
@@ -493,11 +547,11 @@ class _LatestEarthquakeLabel extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.16),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.show_chart_rounded, color: Color(0xFFFFDD9C), size: 16),
-          SizedBox(width: 6),
+          Container(width: 6),
           Text(
             'Gempa Terkini',
             maxLines: 1,
@@ -514,8 +568,8 @@ class _LatestEarthquakeLabel extends StatelessWidget {
   }
 }
 
-class _PreviewBadge extends StatelessWidget {
-  const _PreviewBadge();
+class _SourceBadge extends StatelessWidget {
+  const _SourceBadge();
 
   @override
   Widget build(BuildContext context) {
@@ -538,14 +592,15 @@ class _PreviewBadge extends StatelessWidget {
 }
 
 class _MagnitudeText extends StatelessWidget {
-  const _MagnitudeText({required this.fontSize});
+  const _MagnitudeText({required this.fontSize, required this.magnitude});
 
   final double fontSize;
+  final String magnitude;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      'M 4.8',
+      'M $magnitude',
       style: TextStyle(
         fontSize: fontSize,
         fontWeight: FontWeight.w800,
@@ -557,26 +612,51 @@ class _MagnitudeText extends StatelessWidget {
 }
 
 class _LatestEarthquakeDetails extends StatelessWidget {
-  const _LatestEarthquakeDetails();
+  const _LatestEarthquakeDetails({
+    required this.earthquake,
+    required this.isLoading,
+    required this.hasError,
+  });
+
+  final Earthquake? earthquake;
+  final bool isLoading;
+  final bool hasError;
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    final event = earthquake;
+    if (event == null) {
+      return _EarthquakeDetailRow(
+        icon: hasError ? Icons.cloud_off_rounded : Icons.sync_rounded,
+        text: hasError
+            ? 'Data BMKG gagal dimuat. Tekan coba lagi.'
+            : isLoading
+            ? 'Sedang mengambil data dari BMKG...'
+            : 'Data gempa belum tersedia.',
+      );
+    }
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _EarthquakeDetailRow(
           icon: Icons.access_time_rounded,
-          text: '28 Sep 2026 • 10:42 WITA',
+          text: '${event.date} • ${event.time}',
         ),
-        SizedBox(height: 8),
+        Container(height: 8),
         _EarthquakeDetailRow(
           icon: Icons.location_on_rounded,
-          text: '32 km Barat Laut Balikpapan',
+          text: event.region,
         ),
-        SizedBox(height: 8),
+        Container(height: 8),
         _EarthquakeDetailRow(
           icon: Icons.layers_outlined,
-          text: 'Kedalaman 12 km',
+          text: 'Kedalaman ${event.depth}',
+        ),
+        Container(height: 8),
+        _EarthquakeDetailRow(
+          icon: Icons.info_outline_rounded,
+          text: event.potential,
         ),
       ],
     );
@@ -595,7 +675,7 @@ class _EarthquakeDetailRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, color: const Color(0xFFFFD166), size: 16),
-        const SizedBox(width: 8),
+        Container(width: 8),
         Expanded(
           child: Text(
             text,

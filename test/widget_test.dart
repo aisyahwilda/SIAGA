@@ -5,8 +5,12 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import 'package:siaga_gempa/main.dart';
 import 'package:siaga_gempa/models/penilaian_result.dart';
@@ -15,8 +19,36 @@ import 'package:siaga_gempa/screens/login_screen.dart';
 import 'package:siaga_gempa/screens/penilaian_screen.dart';
 import 'package:siaga_gempa/screens/riwayat_screen.dart';
 import 'package:siaga_gempa/screens/wilayah_screen.dart';
+import 'package:siaga_gempa/services/earthquake_service.dart';
 
 void main() {
+  test('BMKG API response is parsed into an earthquake model', () async {
+    final service = _testEarthquakeService();
+
+    final earthquake = await service.fetchLatest();
+
+    expect(earthquake.formattedMagnitude, '3,4');
+    expect(earthquake.date, '28 Sep 2026');
+    expect(earthquake.time, '10:42 WIB');
+    expect(earthquake.depth, '12 km');
+    expect(earthquake.region, '32 km Barat Laut Balikpapan');
+    expect(
+      earthquake.potential,
+      'Gempa ini dirasakan untuk diteruskan pada masyarakat',
+    );
+  });
+
+  test('BMKG API errors are reported instead of hidden', () async {
+    final service = EarthquakeService(
+      client: MockClient((request) async => http.Response('Unavailable', 503)),
+    );
+
+    await expectLater(
+      service.fetchLatest(),
+      throwsA(isA<http.ClientException>()),
+    );
+  });
+
   testWidgets('Login and registration screens fit a narrow mobile screen', (
     WidgetTester tester,
   ) async {
@@ -25,7 +57,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginScreen(earthquakeService: _testEarthquakeService()),
+      ),
+    );
     expect(find.text('Masuk ke SIAGA'), findsOneWidget);
     expect(find.byType(Image), findsOneWidget);
     expect(find.text('Lupa kata sandi?'), findsNothing);
@@ -52,7 +88,11 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginScreen(earthquakeService: _testEarthquakeService()),
+      ),
+    );
     await tester.tap(find.widgetWithText(TextButton, 'Daftar'));
     await tester.pumpAndSettle();
 
@@ -87,6 +127,11 @@ void main() {
     expect(find.text('Lihat Semua'), findsNothing);
     expect(find.text('BMKG'), findsOneWidget);
     expect(find.text('M 4,8'), findsOneWidget);
+    expect(find.text('M 3,4'), findsOneWidget);
+    expect(
+      find.text('Gempa ini dirasakan untuk diteruskan pada masyarakat'),
+      findsOneWidget,
+    );
     expect(find.text('M 3,6'), findsOneWidget);
     expect(find.text('M 5,1'), findsOneWidget);
     expect(find.text('Dirasakan di Paser dan Tanah Grogot'), findsOneWidget);
@@ -111,6 +156,7 @@ void main() {
           body: SiagaHomePage(
             onOpenWilayah: () {},
             onOpenPenilaian: () => openedEvaluation = true,
+            earthquakeService: _testEarthquakeService(),
           ),
         ),
       ),
@@ -120,6 +166,11 @@ void main() {
     expect(find.byType(Image), findsOneWidget);
     expect(find.text('SIAGA'), findsOneWidget);
     expect(find.text('M 4,8'), findsOneWidget);
+    expect(find.text('M 3,4'), findsOneWidget);
+    expect(
+      find.text('Gempa ini dirasakan untuk diteruskan pada masyarakat'),
+      findsOneWidget,
+    );
     expect(find.text('M 3,6'), findsOneWidget);
     expect(find.text('M 5,1'), findsOneWidget);
     expect(find.text('Halo, Aisyah'), findsOneWidget);
@@ -186,7 +237,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(earthquakeService: _testEarthquakeService()));
     await _loginToApp(tester);
 
     await tester.tap(find.text('Wilayah'));
@@ -367,7 +418,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(earthquakeService: _testEarthquakeService()));
     await _loginToApp(tester);
     await tester.tap(find.text('Siaga').last);
     await tester.pumpAndSettle();
@@ -487,4 +538,30 @@ Future<void> _loginToApp(WidgetTester tester) async {
   await tester.enterText(find.byType(TextFormField).at(1), 'demopassword');
   await tester.tap(find.widgetWithText(FilledButton, 'Masuk'));
   await tester.pumpAndSettle();
+}
+
+EarthquakeService _testEarthquakeService() {
+  return EarthquakeService(
+    client: MockClient((request) async {
+      expect(
+        request.url,
+        Uri.parse('https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json'),
+      );
+      return http.Response(
+        jsonEncode({
+          'Infogempa': {
+            'gempa': {
+              'Tanggal': '28 Sep 2026',
+              'Jam': '10:42 WIB',
+              'Magnitude': '3.4',
+              'Kedalaman': '12 km',
+              'Wilayah': '32 km Barat Laut Balikpapan',
+              'Potensi': 'Gempa ini dirasakan untuk diteruskan pada masyarakat',
+            },
+          },
+        }),
+        200,
+      );
+    }),
+  );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'main_screen.dart';
 import 'register_screen.dart';
+import '../services/earthquake_service.dart';
 
 const _loginOrange = Color(0xFFFB6C00);
 const _loginRed = Color(0xFFE73F1E);
@@ -9,7 +10,12 @@ const _loginInk = Color(0xFF28231F);
 const _loginMuted = Color(0xFF817970);
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({
+    super.key,
+    this.earthquakeService = const EarthquakeService(),
+  });
+
+  final EarthquakeService earthquakeService;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -47,7 +53,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _loginError = null);
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(builder: (_) => const MainScreen()),
+      MaterialPageRoute<void>(
+        builder: (_) => MainScreen(earthquakeService: widget.earthquakeService),
+      ),
     );
   }
 
@@ -133,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _buildBrand(),
-                          const SizedBox(height: 28),
+                          Container(height: 28),
                           _buildLoginCard(),
                         ],
                       ),
@@ -179,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 7),
+          Container(height: 7),
           const Center(
             child: Text(
               'Pantau informasi gempa dan kesiapsiagaan.',
@@ -187,9 +195,9 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(color: _loginMuted, fontSize: 13, height: 1.4),
             ),
           ),
-          const SizedBox(height: 26),
+          Container(height: 26),
           _buildFieldLabel('Email'),
-          const SizedBox(height: 8),
+          Container(height: 8),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
@@ -199,9 +207,9 @@ class _LoginScreenState extends State<LoginScreen> {
             validator: _validateEmail,
             decoration: _inputDecoration(hint: 'nama@email.com'),
           ),
-          const SizedBox(height: 18),
+          Container(height: 18),
           _buildFieldLabel('Kata sandi'),
-          const SizedBox(height: 8),
+          Container(height: 8),
           TextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
@@ -233,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 22),
+          Container(height: 22),
           if (_loginError != null) ...[
             Container(
               width: double.infinity,
@@ -250,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: _loginRed,
                     size: 17,
                   ),
-                  const SizedBox(width: 8),
+                  Container(width: 8),
                   Expanded(
                     child: Text(
                       _loginError!,
@@ -264,9 +272,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            Container(height: 12),
           ],
-          SizedBox(
+          Container(
             width: double.infinity,
             child: FilledButton(
               onPressed: _signIn,
@@ -286,7 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Text('Masuk'),
             ),
           ),
-          const SizedBox(height: 17),
+          Container(height: 17),
           Center(
             child: Wrap(
               alignment: WrapAlignment.center,

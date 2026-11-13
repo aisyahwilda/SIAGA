@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../models/penilaian_result.dart';
 
+class _PertanyaanKesiapsiagaan {
+  const _PertanyaanKesiapsiagaan({required this.teks, required this.icon});
+
+  final String teks;
+  final IconData icon;
+}
+
 class PenilaianScreen extends StatefulWidget {
   const PenilaianScreen({super.key, this.onSave});
 
@@ -12,36 +19,33 @@ class PenilaianScreen extends StatefulWidget {
 }
 
 class _PenilaianScreenState extends State<PenilaianScreen> {
-  // Daftar pertanyaan evaluasi kesiapsiagaan
-  final List<Map<String, dynamic>> _pertanyaan = [
-    {
-      'pertanyaan': 'Apakah kamu mengetahui lokasi titik kumpul terdekat dari tempat tinggalmu?',
-      'icon': Icons.group_outlined,
-    },
-    {
-      'pertanyaan': 'Apakah kamu sudah menyiapkan tas siaga bencana?',
-      'icon': Icons.backpack_outlined,
-    },
-    {
-      'pertanyaan':
-          'Apakah kamu mengetahui jalur evakuasi dari tempat tinggalmu?',
-      'icon': Icons.directions_run_outlined,
-    },
-    {
-      'pertanyaan': 'Apakah kamu mengetahui nomor yang dapat dihubungi dalam keadaan darurat?',
-      'icon': Icons.phone_in_talk_outlined,
-    },
-    {
-      'pertanyaan': 'Apakah kamu memiliki persediaan air minum dan makanan yang cukup untuk kebutuhan darurat selama 3 hari?',
-      'icon': Icons.water_drop_outlined,
-    },
-    {
-      'pertanyaan': 'Apakah kamu dan keluargamu sudah menyepakati rencana evakuasi jika terjadi gempa?',
-      'icon': Icons.family_restroom_outlined,
-    },
+  static const _pertanyaan = <_PertanyaanKesiapsiagaan>[
+    _PertanyaanKesiapsiagaan(
+      teks: 'Apakah kamu mengetahui lokasi titik kumpul terdekat dari tempat tinggalmu?',
+      icon: Icons.group_outlined,
+    ),
+    _PertanyaanKesiapsiagaan(
+      teks: 'Apakah kamu sudah menyiapkan tas siaga bencana?',
+      icon: Icons.backpack_outlined,
+    ),
+    _PertanyaanKesiapsiagaan(
+      teks: 'Apakah kamu mengetahui jalur evakuasi dari tempat tinggalmu?',
+      icon: Icons.directions_run_outlined,
+    ),
+    _PertanyaanKesiapsiagaan(
+      teks: 'Apakah kamu mengetahui nomor yang dapat dihubungi dalam keadaan darurat?',
+      icon: Icons.phone_in_talk_outlined,
+    ),
+    _PertanyaanKesiapsiagaan(
+      teks: 'Apakah kamu memiliki persediaan air minum dan makanan yang cukup untuk kebutuhan darurat selama 3 hari?',
+      icon: Icons.water_drop_outlined,
+    ),
+    _PertanyaanKesiapsiagaan(
+      teks: 'Apakah kamu dan keluargamu sudah menyepakati rencana evakuasi jika terjadi gempa?',
+      icon: Icons.family_restroom_outlined,
+    ),
   ];
 
-  // Jawaban: null = belum, true = Ya, false = Tidak
   late List<bool?> _jawaban;
   bool _sudahSelesai = false;
 
@@ -51,7 +55,6 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     _jawaban = List.filled(_pertanyaan.length, null);
   }
 
-  // Cek apakah semua pertanyaan sudah dijawab
   bool get _semuaDijawab => _jawaban.every((j) => j != null);
 
   void _selesai() {
@@ -64,7 +67,6 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
       );
       setState(() => _sudahSelesai = true);
     } else {
-      // Tampilkan peringatan jika belum semua dijawab
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Jawab semua pertanyaan terlebih dahulu!'),
@@ -84,63 +86,50 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // [Materi Papan Tulis] Pengukuran Layar Dinamis (MediaQuery)
-    final tinggi = MediaQuery.of(context).size.height;
-    final lebar = MediaQuery.of(context).size.width;
-    final statusBar = MediaQuery.of(context).padding.top;
-
-    // [Materi Papan Tulis] Variabel x & y
-    final y = tinggi * 0.1; // variabel y pembagian vertikal
-    final pad = lebar * 0.06;
-    final tombolBulat = lebar * 0.055;
+    final screenSize = MediaQuery.sizeOf(context);
+    final statusBar = MediaQuery.paddingOf(context).top;
+    final y = (screenSize.height * 0.1).clamp(64.0, 80.0).toDouble();
+    final pad = (screenSize.width * 0.06).clamp(18.0, 24.0).toDouble();
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header 3-Kolom sesuai pola papan tulis ──────────────────────
-          _buildHeader(
-            statusBar: statusBar,
-            y: y,
-            pad: pad,
-            tombolBulat: tombolBulat,
-          ),
+          _buildHeader(statusBar: statusBar, y: y, pad: pad),
 
           Padding(
             padding: EdgeInsets.symmetric(horizontal: pad),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                Container(height: 20),
 
-                // Tampilkan hasil atau daftar pertanyaan
                 if (_sudahSelesai)
                   _buildHasilEvaluasi()
                 else ...[
                   _buildProgressBar(),
-                  const SizedBox(height: 24),
+                  Container(height: 24),
                   const Text(
                     'Pertanyaan Kesiapsiagaan',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 6),
+                  Container(height: 6),
                   const Text(
                     'Jawab dengan jujur untuk mengetahui tingkat kesiapsiagaanmu.',
                     style: TextStyle(fontSize: 13, color: Colors.black54),
                   ),
-                  const SizedBox(height: 16),
+                  Container(height: 16),
                   ..._pertanyaan.asMap().entries.map((entry) {
                     return _buildPertanyaanCard(
                       index: entry.key,
                       data: entry.value,
                     );
                   }),
-                  const SizedBox(height: 16),
+                  Container(height: 16),
                   _buildTombolSelesai(),
                 ],
 
-                // Ruang bawah agar tidak tertutup navbar
-                const SizedBox(height: 110),
+                Container(height: 110),
               ],
             ),
           ),
@@ -149,12 +138,10 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     );
   }
 
-  // ── [Materi Papan Tulis] Header dengan Pola 3-Kolom (width = x | lebar - 2x | x) ──
   Widget _buildHeader({
     required double statusBar,
     required double y,
     required double pad,
-    required double tombolBulat,
   }) {
     return Container(
       padding: EdgeInsets.only(top: statusBar + 8, bottom: y * 0.2),
@@ -189,7 +176,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
                             size: 18,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        Container(width: 8),
                         const Expanded(
                           child: Text(
                             'Cek Kesiapan Gempa',
@@ -209,7 +196,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
               ],
             ),
           ),
-          SizedBox(height: y * 0.12),
+          Container(height: y * 0.12),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: pad),
             child: const Text(
@@ -222,7 +209,6 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     );
   }
 
-  // ── Widget: Progress Bar ────────────────────────────────────────────────────
   Widget _buildProgressBar() {
     final terjawab = _jawaban.where((j) => j != null).length;
     final persen = terjawab / _pertanyaan.length;
@@ -261,7 +247,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          Container(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
@@ -278,10 +264,9 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     );
   }
 
-  // ── Widget: Kartu Pertanyaan ────────────────────────────────────────────────
   Widget _buildPertanyaanCard({
     required int index,
-    required Map<String, dynamic> data,
+    required _PertanyaanKesiapsiagaan data,
   }) {
     final jawaban = _jawaban[index];
 
@@ -319,15 +304,15 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  data['icon'] as IconData,
+                  data.icon,
                   color: const Color(0xFFFB6C00),
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 12),
+              Container(width: 12),
               Expanded(
                 child: Text(
-                  '${index + 1}. ${data['pertanyaan']}',
+                  '${index + 1}. ${data.teks}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -336,10 +321,9 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          Container(height: 14),
           Row(
             children: [
-              // Tombol Ya
               Expanded(
                 child: GestureDetector(
                   onTap: () => setState(() => _jawaban[index] = true),
@@ -366,8 +350,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              // Tombol Tidak
+              Container(width: 10),
               Expanded(
                 child: GestureDetector(
                   onTap: () => setState(() => _jawaban[index] = false),
@@ -401,7 +384,6 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     );
   }
 
-  // ── Widget: Tombol Selesai ──────────────────────────────────────────────────
   Widget _buildTombolSelesai() {
     return GestureDetector(
       onTap: _selesai,
@@ -437,7 +419,6 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     );
   }
 
-  // ── Widget: Hasil Evaluasi ──────────────────────────────────────────────────
   Widget _buildHasilEvaluasi() {
     final result = PenilaianResult(
       answers: _jawaban.cast<bool>(),
@@ -471,7 +452,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
                   size: 27,
                 ),
               ),
-              const SizedBox(width: 14),
+              Container(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +465,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    Container(height: 5),
                     Text(
                       '${result.score} dari ${result.answers.length} · ${result.category}',
                       style: const TextStyle(
@@ -493,7 +474,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    Container(height: 6),
                     Text(
                       result.description,
                       style: const TextStyle(
@@ -509,7 +490,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
           ),
         ),
 
-        const SizedBox(height: 20),
+        Container(height: 20),
 
         const Text(
           'Hal yang perlu ditingkatkan',
@@ -519,7 +500,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
             fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(height: 10),
+        Container(height: 10),
         if (result.improvements.isEmpty)
           Container(
             width: double.infinity,
@@ -555,7 +536,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        Container(height: 20),
         GestureDetector(
           onTap: _ulangi,
           child: Container(
@@ -602,7 +583,7 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 5),
+          Container(height: 5),
           Text(
             description,
             style: const TextStyle(

@@ -175,7 +175,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                   top: false,
                   child: Column(
                     children: [
-                      const SizedBox(height: 10),
+                      Container(height: 10),
                       Container(
                         width: 38,
                         height: 4,
@@ -197,7 +197,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(height: 5),
+                            Container(height: 5),
                             const Text(
                               'Pilih satu kota untuk menjadi wilayah pantauan.',
                               style: TextStyle(
@@ -206,7 +206,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                                 height: 1.4,
                               ),
                             ),
-                            const SizedBox(height: 18),
+                            Container(height: 18),
                             TextField(
                               onChanged: (value) =>
                                   setSheetState(() => query = value),
@@ -281,7 +281,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                                               size: 21,
                                             ),
                                           ),
-                                          const SizedBox(width: 13),
+                                          Container(width: 13),
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment:
@@ -295,7 +295,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
-                                                const SizedBox(height: 3),
+                                                Container(height: 3),
                                                 Text(
                                                   region.province,
                                                   style: const TextStyle(
@@ -334,7 +334,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                             top: BorderSide(color: Color(0xFFF0ECE7)),
                           ),
                         ),
-                        child: SizedBox(
+                        child: Container(
                           width: double.infinity,
                           child: FilledButton(
                             onPressed: draftSelection == null
@@ -424,7 +424,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
             ),
           ),
           if (_selectedRegion == null) ...[
-            const SizedBox(height: 7),
+            Container(height: 7),
             const Text(
               'Pantau informasi gempa di wilayah pilihanmu.',
               style: TextStyle(color: _muted, fontSize: 14, height: 1.45),
@@ -440,7 +440,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildEmptyIllustration(),
-        const SizedBox(height: 20),
+        Container(height: 20),
         const Text(
           'Belum Ada Wilayah Pantauan',
           textAlign: TextAlign.center,
@@ -450,13 +450,13 @@ class _WilayahScreenState extends State<WilayahScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 8),
+        Container(height: 8),
         const Text(
           'Pilih wilayah untuk melihat informasi gempa yang relevan.',
           textAlign: TextAlign.center,
           style: TextStyle(color: _muted, fontSize: 14, height: 1.5),
         ),
-        const SizedBox(height: 22),
+        Container(height: 22),
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 270),
           child: _primaryButton(
@@ -470,7 +470,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
   }
 
   Widget _buildEmptyIllustration() {
-    return SizedBox(
+    return Container(
       width: 220,
       height: 165,
       child: Stack(
@@ -531,12 +531,14 @@ class _WilayahScreenState extends State<WilayahScreen> {
   }
 
   Widget _buildSelectedRegion(_Region region) {
+    final events = _eventsFor(region);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildRegionCard(region),
-        const SizedBox(height: 23),
-        if (_hasSampleEarthquake(region)) ...[
+        Container(height: 23),
+        if (events.isNotEmpty) ...[
           const Text(
             'Gempa Dirasakan',
             style: TextStyle(
@@ -546,52 +548,45 @@ class _WilayahScreenState extends State<WilayahScreen> {
               height: 1.3,
             ),
           ),
-          const SizedBox(height: 5),
+          Container(height: 5),
           Text(
             'Kejadian gempa yang dirasakan di wilayah ${region.name} berdasarkan data BMKG.',
             style: const TextStyle(color: _muted, fontSize: 13, height: 1.45),
           ),
-          const SizedBox(height: 16),
-          _buildEarthquakeResults(region),
+          Container(height: 16),
+          _buildEarthquakeResults(events),
         ] else
           _buildNoEventState(region),
       ],
     );
   }
 
-  bool _hasSampleEarthquake(_Region region) {
-    return _sampleEarthquakes.any(
-      (event) =>
-          event.feltAreas.toLowerCase().contains(region.name.toLowerCase()),
-    );
-  }
-
-  Widget _buildEarthquakeResults(_Region region) {
-    final events = _sampleEarthquakes
+  List<_EarthquakeEvent> _eventsFor(_Region region) {
+    return _sampleEarthquakes
         .where(
           (event) =>
               event.feltAreas.toLowerCase().contains(region.name.toLowerCase()),
         )
         .toList(growable: false);
-    if (events.isEmpty) {
-      return _buildNoEventState(region);
-    }
+  }
 
-    return Column(
-      children: [
-        for (var index = 0; index < events.length; index++) ...[
-          _buildFeltEarthquakeCard(events[index]),
-          if (index < events.length - 1) const SizedBox(height: 11),
-        ],
-      ],
+  Widget _buildEarthquakeResults(List<_EarthquakeEvent> events) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: events.length,
+      separatorBuilder: (_, index) => Container(height: 11),
+      itemBuilder: (context, index) {
+        return _buildFeltEarthquakeCard(events[index]);
+      },
     );
   }
 
   Widget _buildNoEventState(_Region region) {
     return Column(
       children: [
-        const SizedBox(height: 30),
-        SizedBox(
+        Container(height: 30),
+        Container(
           height: 108,
           child: Stack(
             alignment: Alignment.center,
@@ -613,7 +608,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
             ],
           ),
         ),
-        const SizedBox(height: 14),
+        Container(height: 14),
         const Text(
           'Belum ada kejadian yang cocok',
           textAlign: TextAlign.center,
@@ -623,13 +618,13 @@ class _WilayahScreenState extends State<WilayahScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        const SizedBox(height: 7),
+        Container(height: 7),
         Text(
           'Belum ada kejadian gempa yang dirasakan di wilayah ${region.name}.',
           textAlign: TextAlign.center,
           style: const TextStyle(color: _muted, fontSize: 13, height: 1.5),
         ),
-        const SizedBox(height: 24),
+        Container(height: 24),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(14),
@@ -638,7 +633,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: const Color(0xFFFFE4CC)),
           ),
-          child: const Row(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
@@ -649,7 +644,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                   size: 19,
                 ),
               ),
-              SizedBox(width: 10),
+              Container(width: 10),
               Expanded(
                 child: Text(
                   'Kejadian yang dirasakan dapat berbeda dari lokasi pusat gempa. Informasi gempa dapat berubah sewaktu-waktu.',
@@ -698,8 +693,8 @@ class _WilayahScreenState extends State<WilayahScreen> {
               Container(
                 width: 42,
                 height: 42,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
                     colors: [Color(0xFFFFF0D3), Color(0xFFFFD287)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -716,33 +711,20 @@ class _WilayahScreenState extends State<WilayahScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              Container(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'M ${event.formattedMagnitude}',
-                            style: const TextStyle(
-                              color: _ink,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'M ${event.formattedMagnitude}',
+                      style: const TextStyle(
+                        color: _ink,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
-                    const SizedBox(height: 4),
+                    Container(height: 4),
                     Text(
                       event.region,
                       style: const TextStyle(
@@ -752,7 +734,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                         height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    Container(height: 3),
                     Text(
                       '${event.date} • ${event.time}',
                       style: const TextStyle(
@@ -761,7 +743,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                         height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    Container(height: 4),
                     Text(
                       'Dirasakan: ${event.feltAreas}',
                       style: const TextStyle(
@@ -773,14 +755,11 @@ class _WilayahScreenState extends State<WilayahScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 5),
-              const Padding(
-                padding: EdgeInsets.only(top: 9),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  color: Color(0xFF77736F),
-                  size: 21,
-                ),
+              Container(width: 5),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFF77736F),
+                size: 21,
               ),
             ],
           ),
@@ -847,7 +826,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                           size: 27,
                         ),
                       ),
-                      const SizedBox(width: 11),
+                      Container(width: 11),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -860,7 +839,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            Container(height: 3),
                             Text(
                               region.name,
                               style: const TextStyle(
@@ -870,7 +849,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
                                 height: 1.15,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            Container(height: 3),
                             Text(
                               region.province,
                               style: const TextStyle(
@@ -919,7 +898,7 @@ class _WilayahScreenState extends State<WilayahScreen> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
       child: FilledButton.icon(
         onPressed: onPressed,
@@ -978,9 +957,9 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                     'Dirasakan',
                     event.feltAreas,
                   ),
-                  const SizedBox(height: 2),
+                  Container(height: 2),
                   _buildCoordinateIllustration(),
-                  const SizedBox(height: 17),
+                  Container(height: 17),
                   const Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
@@ -998,7 +977,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
   }
 
   Widget _buildHero(BuildContext context) {
-    return SizedBox(
+    return Container(
       height: 286,
       child: Stack(
         clipBehavior: Clip.none,
@@ -1043,7 +1022,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                     icon: const Icon(Icons.arrow_back_rounded, color: _ink),
                   ),
                 ),
-                const SizedBox(width: 10),
+                Container(width: 10),
                 const Text(
                   'Detail Gempa',
                   style: TextStyle(
@@ -1093,7 +1072,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                       size: 26,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  Container(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1107,7 +1086,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                             height: 1.1,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        Container(height: 4),
                         Text(
                           event.region,
                           style: const TextStyle(
@@ -1117,7 +1096,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                             height: 1.35,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        Container(height: 4),
                         Text(
                           '${event.date} • ${event.time}',
                           style: const TextStyle(color: _muted, fontSize: 11),
@@ -1125,7 +1104,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  Container(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -1164,10 +1143,10 @@ class _EarthquakeDetailScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Icon(Icons.location_on_rounded, color: _orange, size: 18),
-              SizedBox(width: 7),
+              Container(width: 7),
               Expanded(
                 child: Text(
                   'Lokasi Pusat Gempa',
@@ -1180,10 +1159,10 @@ class _EarthquakeDetailScreen extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 11),
+          Container(height: 11),
           ClipRRect(
             borderRadius: BorderRadius.circular(13),
-            child: SizedBox(
+            child: Container(
               height: 132,
               width: double.infinity,
               child: Stack(
@@ -1239,12 +1218,12 @@ class _EarthquakeDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 9),
-          const Row(
+          Container(height: 9),
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.info_outline_rounded, color: _orange, size: 16),
-              SizedBox(width: 7),
+              Container(width: 7),
               Expanded(
                 child: Text(
                   'Penanda ini hanya ilustrasi area. Titik koordinat di atas adalah acuan lokasi yang lebih tepat.',
@@ -1268,11 +1247,11 @@ class _EarthquakeDetailScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
+          Container(
             width: 26,
             child: Icon(icon, color: const Color(0xFFB94B20), size: 20),
           ),
-          const SizedBox(width: 12),
+          Container(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1285,7 +1264,7 @@ class _EarthquakeDetailScreen extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 3),
+                Container(height: 3),
                 Text(
                   value,
                   style: const TextStyle(

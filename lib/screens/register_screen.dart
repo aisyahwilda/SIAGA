@@ -112,7 +112,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _buildBrand(),
-                          const SizedBox(height: 22),
+                          Container(height: 22),
                           _buildFormCard(),
                         ],
                       ),
@@ -156,7 +156,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          Container(height: 6),
           const Center(
             child: Text(
               'Daftar untuk mulai menggunakan SIAGA',
@@ -168,9 +168,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 22),
+          Container(height: 22),
           _fieldLabel('Email'),
-          const SizedBox(height: 7),
+          Container(height: 7),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
@@ -179,9 +179,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             validator: _validateEmail,
             decoration: _decoration(hint: 'nama@email.com'),
           ),
-          const SizedBox(height: 15),
+          Container(height: 15),
           _fieldLabel('Kata sandi'),
-          const SizedBox(height: 7),
+          Container(height: 7),
           TextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
@@ -206,9 +206,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 15),
+          Container(height: 15),
           _fieldLabel('Konfirmasi kata sandi'),
-          const SizedBox(height: 7),
+          Container(height: 7),
           TextFormField(
             controller: _confirmPasswordController,
             obscureText: _obscureConfirmation,
@@ -242,8 +242,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 21),
-          SizedBox(
+          Container(height: 21),
+          Container(
             width: double.infinity,
             child: FilledButton(
               onPressed: _register,
@@ -263,7 +263,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: const Text('Daftar'),
             ),
           ),
-          const SizedBox(height: 8),
+          Container(height: 8),
           Center(
             child: Wrap(
               alignment: WrapAlignment.center,
