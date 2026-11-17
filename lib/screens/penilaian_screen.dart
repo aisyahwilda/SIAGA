@@ -88,14 +88,13 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.sizeOf(context);
     final statusBar = MediaQuery.paddingOf(context).top;
-    final y = (screenSize.height * 0.1).clamp(64.0, 80.0).toDouble();
     final pad = (screenSize.width * 0.06).clamp(18.0, 24.0).toDouble();
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(statusBar: statusBar, y: y, pad: pad),
+          _buildHeader(statusBar: statusBar, pad: pad),
 
           Padding(
             padding: EdgeInsets.symmetric(horizontal: pad),
@@ -138,76 +137,67 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
     );
   }
 
+  
   Widget _buildHeader({
     required double statusBar,
-    required double y,
     required double pad,
   }) {
     return Container(
-      padding: EdgeInsets.only(top: statusBar + 8, bottom: y * 0.2),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFE0D2), Color(0xFFFAFAFA)],
-        ),
+      color: Colors.white,
+      padding: EdgeInsets.only(
+        top: statusBar + 20,
+        bottom: 12,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ConstrainedBox(
-            constraints: BoxConstraints(minHeight: y * 0.6),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: pad),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE73F1E),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.fact_check,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                        Container(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Cek Kesiapan Gempa',
-                            softWrap: true,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1A1A1A),
-                              height: 1.15,
-                            ),
-                          ),
-                        ),
-                      ],
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: pad),
+        child: Row(
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE73F1E),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(
+                Icons.fact_check_rounded,
+                color: Colors.white,
+                size: 27,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Cek Kesiapan Gempa',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1A1A1A),
+                      height: 1.15,
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 5),
+                  Text(
+                    'Cek tingkat kesiapsiagaanmu menghadapi gempa',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.black54,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Container(height: y * 0.12),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: pad),
-            child: const Text(
-              'Cek tingkat kesiapsiagaanmu menghadapi gempa',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildProgressBar() {
     final terjawab = _jawaban.where((j) => j != null).length;
@@ -218,6 +208,10 @@ class _PenilaianScreenState extends State<PenilaianScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFE3E3E3),
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),

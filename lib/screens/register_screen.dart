@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _registerOrange = Color(0xFFFB6C00);
 const _registerRed = Color(0xFFE73F1E);
 const _registerInk = Color(0xFF28231F);
 const _registerMuted = Color(0xFF817970);
-
-class RegisteredAccount {
-  const RegisteredAccount({required this.email, required this.password});
-
-  final String email;
-  final String password;
-}
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -21,6 +15,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -29,10 +24,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  
+  String? _validateName(String? value) {
+    final name = value?.trim() ?? '';
+    if (name.isEmpty) {
+      return 'Masukkan nama lengkap';
+    } 
+    if (name.length < 2) {
+      return 'Nama minimal 2 karakter';
+    }
+
+    return null;
   }
 
   String? _validateEmail(String? value) {
@@ -50,15 +59,50 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return null;
   }
 
-  void _register() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop(
-      RegisteredAccount(
-        email: _emailController.text.trim().toLowerCase(),
-        password: _passwordController.text,
+Future<void> _register() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  try {
+    final response = await Supabase.instance.client.auth.signUp(
+      email: _emailController.text.trim() .toLowerCase(),
+      password: _passwordController.text,
+      data: {
+        'full_name': _nameController.text.trim(),
+      }
+    );
+
+    if (!mounted) return;
+
+    if (response.user != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pendaftaran Berhasil! Silahkan Masuk.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+      Navigator.of(context).pop();
+    }
+  } on AuthException catch (error) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(error.message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } catch (error) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Terjadi kesalahan. Silahkan coba lagi.'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
+}
 
   InputDecoration _decoration({required String hint, Widget? suffixIcon}) {
     return InputDecoration(
@@ -169,6 +213,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ),
           Container(height: 22),
+          _fieldLabel('Nama lengkap'),
+          Container(height: 7),
+          TextFormField(
+            controller: _nameController,
+            keyboardType: TextInputType.name,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.name],
+            validator: _validateName,
+            decoration: _decoration(hint: 'Masukkan nama lengkap'),
+          ),
+          Container(height: 15),
           _fieldLabel('Email'),
           Container(height: 7),
           TextFormField(

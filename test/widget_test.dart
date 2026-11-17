@@ -156,6 +156,7 @@ void main() {
           body: SiagaHomePage(
             onOpenWilayah: () {},
             onOpenPenilaian: () => openedEvaluation = true,
+            onOpenAccount: () {},
             earthquakeService: _testEarthquakeService(),
           ),
         ),

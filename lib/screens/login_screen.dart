@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'main_screen.dart';
 import 'register_screen.dart';
 import '../services/earthquake_service.dart';
 
@@ -26,7 +26,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  RegisteredAccount? _registeredAccount;
   String? _loginError;
 
   @override
@@ -36,46 +35,34 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _signIn() {
+ Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final email = _emailController.text.trim().toLowerCase();
-    final account = _registeredAccount;
-    if (account == null ||
-        account.email != email ||
-        account.password != _passwordController.text) {
-      setState(
-        () => _loginError =
-            'Email atau kata sandi tidak cocok dengan akun terdaftar.',
-      );
-      return;
-    }
-
     setState(() => _loginError = null);
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => MainScreen(earthquakeService: widget.earthquakeService),
-      ),
-    );
+
+    try {
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: _emailController.text.trim().toLowerCase(),
+        password: _passwordController.text,
+      );
+
+    } on AuthException catch (error) {
+      if (!mounted) return;
+
+      setState(() => _loginError = error.message);
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _loginError = 'Terjadi kesalahan. Silakan coba lagi.';
+      });
+    }
   }
 
   Future<void> _openRegistration() async {
-    final account = await Navigator.of(context).push<RegisteredAccount>(
-      MaterialPageRoute<RegisteredAccount>(
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
         builder: (_) => const RegisterScreen(),
-      ),
-    );
-    if (!mounted || account == null) return;
-
-    setState(() {
-      _registeredAccount = account;
-      _emailController.text = account.email;
-      _passwordController.clear();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Pendaftaran berhasil. Silakan masuk.'),
-        behavior: SnackBarBehavior.floating,
       ),
     );
   }

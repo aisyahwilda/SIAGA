@@ -19,32 +19,30 @@ class RiwayatScreen extends StatelessWidget {
         children: [
           Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(pad, statusBar + 16, pad, 22),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFFFFE0D2), Color(0xFFFAFAFA)],
-              ),
-            ),
+            padding: EdgeInsets.fromLTRB(pad, statusBar + 20, pad, 18),
+            color: Colors.white,
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Color(0xFFF9B637),
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE73F1E),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
                   child: Icon(
                     Icons.history_rounded,
                     color: Colors.white,
-                    size: 21,
+                    size: 27,
                   ),
                 ),
-                Container(width: 11),
+                Container(width: 14),
                 Expanded(
                   child: Text(
                     'Riwayat Penilaian',
                     style: TextStyle(
                       color: Color(0xFF1A1A1A),
-                      fontSize: 19,
+                      fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -57,17 +55,13 @@ class RiwayatScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Riwayat Penilaian',
-                  style: TextStyle(
-                    color: Color(0xFF20242A),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Container(height: 12),
                 if (penilaianHistory.isEmpty)
-                  _buildEmptyState()
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.55,
+                    child: Center(
+                      child: _buildEmptyState(),
+                    ),
+                  )
                 else
                   ...penilaianHistory.map(
                     (result) => _buildPenilaianCard(context, result),
@@ -80,33 +74,56 @@ class RiwayatScreen extends StatelessWidget {
     );
   }
 
+  
   Widget _buildEmptyState() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8F0),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFF5E8DC)),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 24,
+        vertical: 30,
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.event_note_rounded, color: Color(0xFFFB6C00)),
-          Container(width: 10),
-          Expanded(
-            child: Text(
-              'Hasil penilaian yang sudah selesai akan tersimpan di sini.',
-              style: TextStyle(
-                color: Color(0xFF6C7076),
-                fontSize: 12,
-                height: 1.4,
-              ),
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF0E5),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(
+              Icons.assignment_outlined,
+              color: Color(0xFFFB6C00),
+              size: 32,
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Belum Ada Riwayat Penilaian',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF20242A),
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Kamu belum menyelesaikan penilaian kesiapsiagaan. '
+            'Hasil penilaianmu akan muncul di sini setelah selesai.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF6C7076),
+              fontSize: 13,
+              height: 1.5,
             ),
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildPenilaianCard(BuildContext context, PenilaianResult result) {
     final isStrong = result.score >= 5;

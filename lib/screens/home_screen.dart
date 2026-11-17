@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/earthquake.dart';
 import '../services/earthquake_service.dart';
+import '../models/felt_earthquake.dart';
+import '../services/felt_earthquake_service.dart';
 
 class SiagaHomePage extends StatefulWidget {
   const SiagaHomePage({
     super.key,
     required this.onOpenWilayah,
     required this.onOpenPenilaian,
+    required this.onOpenAccount,
     this.earthquakeService = const EarthquakeService(),
+    this.feltEarthquakeService = const FeltEarthquakeService(),
   });
 
   final VoidCallback onOpenWilayah;
   final VoidCallback onOpenPenilaian;
+  final VoidCallback onOpenAccount;
   final EarthquakeService earthquakeService;
+  final FeltEarthquakeService feltEarthquakeService;
 
   @override
   State<SiagaHomePage> createState() => _SiagaHomePageState();
@@ -21,16 +28,25 @@ class SiagaHomePage extends StatefulWidget {
 
 class _SiagaHomePageState extends State<SiagaHomePage> {
   late Future<Earthquake> _earthquakeFuture;
+  late Future<List<FeltEarthquake>> _feltEarthquakesFuture;
 
   @override
   void initState() {
     super.initState();
     _earthquakeFuture = widget.earthquakeService.fetchLatest();
+    _feltEarthquakesFuture = widget.feltEarthquakeService.fetchFeltEarthquakes();
   }
 
   void _retryEarthquakeRequest() {
     setState(() {
       _earthquakeFuture = widget.earthquakeService.fetchLatest();
+    });
+  }
+
+  void _retryFeltEarthquakesRequest() {
+    setState(() {
+      _feltEarthquakesFuture =
+          widget.feltEarthquakeService.fetchFeltEarthquakes();
     });
   }
 
@@ -51,7 +67,7 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(height: y * 0.15),
+                Container(height: 12),
                 _buildLocationSelector(y: y),
                 Container(height: y * 0.25),
                 _buildMainEarthquakeCard(),
@@ -68,81 +84,99 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
     );
   }
 
-  Widget _buildHeaderSection({
-    required double statusBar,
-    required double y,
-    required double pad,
-  }) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(pad, statusBar + 12, pad, y * 0.22),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFE4D7), Color(0xFFFFF5EF), Colors.white],
+
+Widget _buildHeaderSection({
+  required double statusBar,
+  required double y,
+  required double pad,
+}) {
+  final user = Supabase.instance.client.auth.currentUser;
+
+  final metadataName =
+      user?.userMetadata?['full_name']?.toString();
+
+  final fullName = metadataName?.trim() ?? '';
+
+  final emailName = user?.email?.split('@').first ?? 'Pengguna';
+
+  final userName = fullName.isNotEmpty
+      ? fullName.split(RegExp(r'\s+')).first
+      : emailName.split(RegExp(r'\s+')).first;
+
+  final initial = userName[0].toUpperCase();
+
+  return Container(
+    width: double.infinity,
+    padding: EdgeInsets.fromLTRB(
+      pad,
+      statusBar + 20,
+      pad,
+      4,
+    ),
+    color: Colors.white,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onOpenAccount,
+                borderRadius: BorderRadius.circular(50),
+                child: CircleAvatar(
+                  radius: 25,
+                  backgroundColor: const Color(0xFFE95727),
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Halo, $userName!',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Color(0xFF28231F),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  const Text(
+                    'Semoga selalu dalam keadaan aman dan siap.',
+                    style: TextStyle(
+                      color: Color(0xFF77736F),
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Image.asset(
-                'assets/siaga_icon.png',
-                width: 48,
-                height: 48,
-                fit: BoxFit.contain,
-              ),
-              Container(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'SIAGA',
-                      style: TextStyle(
-                        color: Color(0xFFE95727),
-                        fontSize: 21,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                        height: 1.1,
-                      ),
-                    ),
-                    Container(height: 3),
-                    Text(
-                      'Sistem Informasi Gempa',
-                      style: TextStyle(color: Color(0xFF514740), fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Container(height: y * 0.35),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Halo, Aisyah',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.w800),
-              ),
-              Container(height: 6),
-              Text(
-                'Semoga selalu dalam keadaan aman dan siap.',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF77736F),
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+
+        const SizedBox(height: 4),
+      ],
+    ),
+  );
+}
 
   Widget _buildLocationSelector({required double y}) {
     return Material(
@@ -152,14 +186,19 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
         onTap: widget.onOpenWilayah,
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 18, vertical: y * 0.16),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           decoration: BoxDecoration(
+            color: Colors.white,
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFECE5DF),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF553923).withValues(alpha: 0.06),
-                blurRadius: 18,
-                offset: const Offset(0, 7),
+                color: const Color(0xFF553923).withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
@@ -323,65 +362,115 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
   }
 
   Widget _buildFeltSection() {
-    const events = [
-      (
-        magnitude: 'M 4,8',
-        location: 'Laut Sulawesi',
-        time: '28 Sep 2026 • 10:42 WITA',
-        feltArea: 'Balikpapan dan sekitarnya',
-      ),
-      (
-        magnitude: 'M 3,6',
-        location: 'Paser, Kalimantan Timur',
-        time: '28 Sep 2026 • 08:15 WITA',
-        feltArea: 'Paser dan Tanah Grogot',
-      ),
-      (
-        magnitude: 'M 5,1',
-        location: 'Samarinda, Kalimantan Timur',
-        time: '27 Sep 2026 • 23:07 WITA',
-        feltArea: 'Samarinda dan Kutai Kartanegara',
-      ),
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Expanded(
-              child: Text(
-                'Gempa Dirasakan',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
+        const Text(
+          'Gempa Dirasakan',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Container(height: 5),
+        const SizedBox(height: 5),
         const Text(
           'Ringkasan kejadian yang dirasakan masyarakat.',
           style: TextStyle(fontSize: 12, color: Colors.black54),
         ),
-        Container(height: 12),
-        for (var index = 0; index < events.length; index++) ...[
-          _buildFeltEarthquakeCard(
-            magnitude: events[index].magnitude,
-            location: events[index].location,
-            time: events[index].time,
-            feltArea: events[index].feltArea,
-            index: index,
-          ),
-          if (index != events.length - 1) Container(height: 10),
-        ],
+        const SizedBox(height: 12),
+        FutureBuilder<List<FeltEarthquake>>(
+          future: _feltEarthquakesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 28),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFFFB6C00),
+                  ),
+                ),
+              );
+            }
+
+            if (snapshot.hasError) {
+              debugPrint(
+                'ERROR GEMPA DIRASAKAN: ${snapshot.error}',
+              );
+
+              return _buildFeltMessage(
+                icon: Icons.cloud_off_outlined,
+                message: 'Data gagal dimuat: ${snapshot.error}',
+                actionLabel: 'Coba lagi',
+                onPressed: _retryFeltEarthquakesRequest,
+              );
+            }
+
+            final events = snapshot.data ?? const <FeltEarthquake>[];
+            if (events.isEmpty) {
+              return _buildFeltMessage(
+                icon: Icons.info_outline_rounded,
+                message: 'Belum ada data gempa dirasakan.',
+              );
+            }
+
+            final displayedEvents = events.take(3).toList();
+            return Column(
+              children: [
+                for (var index = 0; index < displayedEvents.length; index++) ...[
+                  _buildFeltEarthquakeCard(
+                    event: displayedEvents[index],
+                    index: index,
+                  ),
+                  if (index != displayedEvents.length - 1)
+                    const SizedBox(height: 10),
+                ],
+                const SizedBox(height: 8),
+                const Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    'Sumber: BMKG',
+                    style: TextStyle(fontSize: 10, color: Colors.black45),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ],
     );
   }
 
+  Widget _buildFeltMessage({
+    required IconData icon,
+    required String message,
+    String? actionLabel,
+    VoidCallback? onPressed,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFF0E9E4)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: const Color(0xFFFB6C00), size: 25),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+          if (actionLabel != null && onPressed != null) ...[
+            const SizedBox(height: 6),
+            TextButton(onPressed: onPressed, child: Text(actionLabel)),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildFeltEarthquakeCard({
-    required String magnitude,
-    required String location,
-    required String time,
-    required String feltArea,
+    required FeltEarthquake event,
     required int index,
   }) {
     final accent = index == 2
@@ -413,36 +502,36 @@ class _SiagaHomePageState extends State<SiagaHomePage> {
               borderRadius: BorderRadius.circular(4),
             ),
           ),
-          Container(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  magnitude,
+                  'M ${event.magnitude.replaceAll('.', ',')}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: accent,
                   ),
                 ),
-                Container(height: 5),
+                const SizedBox(height: 5),
                 Text(
-                  location,
+                  event.region,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: Color(0xFF292421),
                   ),
                 ),
-                Container(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  time,
+                  '${event.date} • ${event.time}',
                   style: const TextStyle(fontSize: 11, color: Colors.black54),
                 ),
-                Container(height: 6),
+                const SizedBox(height: 6),
                 Text(
-                  'Dirasakan di $feltArea',
+                  'Dirasakan: ${event.feltAreas}',
                   style: const TextStyle(
                     fontSize: 11,
                     color: Color(0xFF5D514A),
